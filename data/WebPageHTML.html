@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>IOT PROJECT</title>
+    <link rel="stylesheet" trype="text/css" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1>PLANT MONITORING AND WATERING WEB</h1>
+        <p>Temperature: <span class="temperature">{{celsiusTemp}} °C</span></p>
+        <p>Moisture: <span class="moisture">{{humidity}} %</span></p>
+        <p>Presence: <span class="presence">{{presence}}</span></p>
+        <p class="symbol" id="moistureSymbol">🌱</p>
+        
+        <h2>Actions:</h2>
+        <button class="waterButton" onclick="waterPlant()">Water the plant</button>
+        <p></p>
+        <div>
+            <label class="toggle">
+            <input class="toggle-checkbox" type="checkbox" id="whatsappToggle" onclick="toggleWhatsAppNotifications()">
+            <div class="toggle-switch"></div>
+            <span class="toggle-label">WhatsApp Notifications</span>
+          </label>
+          
+          </div>
+    </div>
+
+    <script>
+        // JavaScript functions for interaction and data display
+
+        // Function to simulate watering the plant
+        function waterPlant() {
+            document.addEventListener("DOMContentLoaded", function () {
+            var activatePumpButton = document.getElementById("activatePump");
+
+            activatePumpButton.addEventListener("click", function () {
+            // Send an HTTP request to the ESP8266 to activate the water pump
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", "/activate_pump", true);
+            xhr.send();});
+            });
+        alert("Watering the plant...");
+        }
+
+        // Function to toggle WhatsApp notifications
+        function toggleWhatsAppNotifications() {
+            const whatsappToggle = document.getElementById("whatsappToggle");
+            if (whatsappToggle.checked) {
+                // Enable WhatsApp notifications
+                // You can add code here to set up WhatsApp notifications
+                // via the WhatsApp API when the switch is turned on.
+                alert("WhatsApp notifications enabled.");
+            } else {
+                // Disable WhatsApp notifications
+                // You can add code here to disable WhatsApp notifications.
+                alert("WhatsApp notifications disabled.");
+            }
+        }
+    </script>
+</body>
+
+</html>
