@@ -12,10 +12,11 @@
         <p>Temperature: <span class="temperature">{{celsiusTemp}} °C</span></p>
         <p>Moisture: <span class="moisture">{{humidity}} %</span></p>
         <p>Presence: <span class="presence">{{presence}}</span></p>
-        <p class="symbol" id="moistureSymbol">🌱</p>
+        <p class="symbol" id="plantSymbol">🌵</p>
         
         <h2>Actions:</h2>
         <button class="waterButton" onclick="waterPlant()">Water the plant</button>
+        <button class="alarmButton" onclick="alarmPlant()">Activate the alarm</button>
         <p></p>
         <div>
             <label class="toggle">
@@ -24,7 +25,14 @@
             <span class="toggle-label">WhatsApp Notifications</span>
           </label>
           
-          </div>
+        </div>
+        <style>
+            .spacer {
+                margin-bottom: 60px; /* Adjust the value as needed */
+            }
+        </style>
+        <div class="spacer"></div>
+        <div class="footer">&copy;<span id="year"> </span><span> Universitat politècnica de Catalunya. All rights reserved.</span></div>
     </div>
 
     <script>
@@ -42,6 +50,17 @@
             xhr.send();});
             });
         alert("Watering the plant...");
+        }
+        function alarmPlant(){
+            document.addEventListener("DOMContentLoaded", function () {
+            var activatePumpButton = document.getElementById("activateAlarm");
+
+            activatePumpButton.addEventListener("click", function () {
+            // Send an HTTP request to the ESP8266 to activate the water pump
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", "/activate_alarm", true);
+            xhr.send();});
+            });
         }
 
         // Function to toggle WhatsApp notifications
