@@ -13,10 +13,12 @@
 const int DHTPin = 5;
 DHT dht(DHTPin, DHTTYPE);
 
-const char* ssid = "NOM DEL WIFI";
-const char* password = "CONTRASSENYA";
+// Wifi connection data
+const char* ssid = "dragino-1c0ad8";
+const char* password = "dragino-dragino";
 WiFiServer server(80);
 
+// DHT data variables
 static char celsiusTemp[7];
 static char humidityTemp[7];
 
@@ -59,7 +61,7 @@ void loop() {
         char c = client.read();
 
         if (c == '\n' && blank_line) {
-          //We start the dht sensor readings:
+          //We start the sensor readings:
 
           //----------------DHT----------------
           float h = dht.readHumidity();
@@ -79,8 +81,10 @@ void loop() {
 
           //--------SOIL_HUMIDITY_SENSOR----------
           
-
+          //
           //----------PRESENCE_SENSOR-------------
+          
+          //
           static char presence[7];
 
           client.println("HTTP/1.1 200 OK");
@@ -115,7 +119,7 @@ void loop() {
           webpage.replace("{{celsiusTemp}}", celsiusTemp);
           webpage.replace("{{humidity}}", humidityTemp);
           webpage.replace("{{presence}}", presence);
-      
+
           // Send the HTML content
           client.print(webpage);
           break;
