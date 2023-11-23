@@ -43,43 +43,260 @@ unsigned long previousMillis = 0;    // will store last time DHT was updated
 const long interval = 10000;  
 
 const char index_html[] PROGMEM = R"rawliteral(
-<!DOCTYPE HTML><html>
-<head>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
-  <link rel="icon" href="data:,">
-<style>
-    html {
-     font-family: Arial;
-     display: inline-block;
-     margin: 0px auto;
-     text-align: center;
-    }
-    h2 { font-size: 3.0rem; }
-    p { font-size: 3.0rem; }
-    .units { font-size: 1.2rem; }
-    .dht-labels{
-      font-size: 1.5rem;
-      vertical-align:middle;
-      padding-bottom: 15px;
-    }
-  </style>
+<!DOCTYPE html>
+<html>
+<head><meta http-equiv="cache-control" content="no-cache"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="-1"><style type="text/css">body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+}
+
+.container {
+    margin: 0 auto;
+    max-width: auto;
+    padding: 25px;
+    border: 2px solid #000000;
+    border-radius: 10px;
+    background-color: #ffac9c;
+}
+
+h1 {
+    color: #333;
+}
+
+.temperature {
+    font-size: 35px;
+}
+
+.moisture {
+    font-size: 35px;
+}
+
+.presence {
+    font-size: 35px;
+}
+
+.symbol {
+    font-size: 100px;
+}
+
+*,
+*:before,
+*:after {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, ".SFNSText-Regular", "Helvetica Neue", "Roboto", "Segoe UI", sans-serif;
+}
+
+.toggle {
+  cursor: pointer;
+  display: inline-block;
+}
+
+.toggle-switch {
+  display: inline-block;
+  background: #ccc;
+  border-radius: 16px;
+  width: 58px;
+  height: 32px;
+  position: relative;
+  vertical-align: middle;
+  transition: background 0.25s;
+}
+.toggle-switch:before, .toggle-switch:after {
+  content: "";
+}
+.toggle-switch:before {
+  display: block;
+  background: linear-gradient(to bottom, #fff 0%, #eee 100%);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25);
+  width: 24px;
+  height: 24px;
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  transition: left 0.25s;
+}
+.toggle:hover .toggle-switch:before {
+  background: linear-gradient(to bottom, #fff 0%, #fff 100%);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5);
+}
+.toggle-checkbox:checked + .toggle-switch {
+  background: #56c080;
+}
+.toggle-checkbox:checked + .toggle-switch:before {
+  left: 30px;
+}
+
+.toggle-checkbox {
+  position: absolute;
+  visibility: hidden;
+}
+
+.toggle-label {
+  margin-left: 5px;
+  position: relative;
+  top: 2px;
+}
+
+
+.waterButton {
+  background: #fff;
+  backface-visibility: hidden;
+  border-radius: .375rem;
+  border-style: solid;
+  border-width: .125rem;
+  box-sizing: border-box;
+  color: #212121;
+  cursor: pointer;
+  display: inline-block;
+  font-family: Circular,Helvetica,sans-serif;
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -.01em;
+  line-height: 1.3;
+  padding: .875rem 1.125rem;
+  position: relative;
+  text-align: left;
+  text-decoration: none;
+  transform: translateZ(0) scale(1);
+  transition: transform .2s;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+.waterButton:not(:disabled):hover {
+  transform: scale(1.05);
+}
+
+.waterButton:not(:disabled):hover:active {
+  transform: scale(1.05) translateY(.125rem);
+}
+
+.waterButton:focus {
+  outline: 0 solid transparent;
+}
+
+.waterButton:focus:before {
+  content: "";
+  left: calc(-1*.375rem);
+  pointer-events: none;
+  position: absolute;
+  top: calc(-1*.375rem);
+  transition: border-radius;
+  user-select: none;
+}
+
+.waterButton:focus:not(:focus-visible) {
+  outline: 0 solid transparent;
+}
+
+.waterButton:focus:not(:focus-visible):before {
+  border-width: 0;
+}
+
+.waterButton:not(:disabled):active {
+  transform: translateY(.125rem);
+}
+
+.alarmButton {
+  background: #fff;
+  backface-visibility: hidden;
+  border-radius: .375rem;
+  border-style: solid;
+  border-width: .125rem;
+  box-sizing: border-box;
+  color: #212121;
+  cursor: pointer;
+  display: inline-block;
+  font-family: Circular,Helvetica,sans-serif;
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -.01em;
+  line-height: 1.3;
+  padding: .875rem 1.125rem;
+  position: relative;
+  text-align: left;
+  text-decoration: none;
+  transform: translateZ(0) scale(1);
+  transition: transform .2s;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+.alarmButton:not(:disabled):hover {
+  transform: scale(1.05);
+}
+
+.alarmButton:not(:disabled):hover:active {
+  transform: scale(1.05) translateY(.125rem);
+}
+
+.alarmButton:focus {
+  outline: 0 solid transparent;
+}
+
+.alarmButton:focus:before {
+  content: "";
+  left: calc(-1*.375rem);
+  pointer-events: none;
+  position: absolute;
+  top: calc(-1*.375rem);
+  transition: border-radius;
+  user-select: none;
+}
+
+.alarmButton:focus:not(:focus-visible) {
+  outline: 0 solid transparent;
+}
+
+.alarmButton:focus:not(:focus-visible):before {
+  border-width: 0;
+}
+
+.alarmButton:not(:disabled):active {
+  transform: translateY(.125rem);
+}</style>
+
+
+    <title>IOT PROJECT</title>
+    <link rel="stylesheet" trype="text/css" href="styles.css">
 </head>
+
 <body>
-  <h2>ESP8266 DHT Server</h2>
-  <p>
-    <i class="fas fa-thermometer-half" style="color:#059e8a;"></i> 
-    <span class="dht-labels">Temperature</span> 
-    <span id="temperature">%TEMPERATURE%</span>
-    <sup class="units">&deg;C</sup>
-  </p>
-  <p>
-    <i class="fas fa-tint" style="color:#00add6;"></i> 
-    <span class="dht-labels">Humidity</span>
-    <span id="humidity">%HUMIDITY%</span>
-    <sup class="units">%</sup>
-  </p>
-</body>
+    <div class="container">
+        <h1>PLANT MONITORING AND WATERING WEB</h1>
+        <p>Temperature: <span class="temperature">{{celsiusTemp}} °C</span></p>
+        <p>Moisture: <span class="moisture">{{humidity}} %</span></p>
+        <p>Presence: <span class="presence">{{presence}}</span></p>
+        <p class="symbol" id="plantSymbol">🌵</p>
+        
+        <h2>Actions:</h2>
+        <button class="waterButton" onclick="waterPlant()">Water the plant</button>
+        <button class="alarmButton" onclick="alarmPlant()">Activate the alarm</button>
+        <p></p>
+        <div>
+            <label class="toggle">
+            <input class="toggle-checkbox" type="checkbox" id="whatsappToggle" onclick="toggleWhatsAppNotifications()">
+            <div class="toggle-switch"></div>
+            <span class="toggle-label">WhatsApp Notifications</span>
+          </label>
+          
+        </div>
+        <style>
+            .spacer {
+                margin-bottom: 60px; /* Adjust the value as needed */
+            }
+        </style>
+        <div class="spacer"></div>
+        <div class="footer">©<span id="year"> </span><span> Universitat politècnica de Catalunya. All rights reserved.</span></div>
+    </div>
+
+
 <script>
 setInterval(function ( ) {
   var xhttp = new XMLHttpRequest();
@@ -104,7 +321,8 @@ setInterval(function ( ) {
   xhttp.send();
 }, 10000 ) ;
 </script>
-</html>)rawliteral";
+</html>
+)rawliteral";
 
 // Replaces placeholder with DHT values
 String processor(const String& var){
