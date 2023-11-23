@@ -11,6 +11,8 @@
 #include <Hash.h>
 
 
+
+
 // Replace with your network credentials
 const char* ssid = "REPLACE_WITH_YOUR_SSID";
 const char* password = "REPLACE_WITH_YOUR_PASSWORD";
@@ -18,13 +20,9 @@ const char* password = "REPLACE_WITH_YOUR_PASSWORD";
 String phoneNumber = "+34722254551"; 
 String apiKey = "1084263";
 
-
+//DHT
 #define DHTPIN 5     // Digital pin connected to the DHT sensor
-
-// Uncomment the type of sensor in use:
-//#define DHTTYPE    DHT11     // DHT 11
 #define DHTTYPE    DHT22     // DHT 22 (AM2302)
-//#define DHTTYPE    DHT21     // DHT 21 (AM2301)
 
 DHT dht(DHTPIN, DHTTYPE);
 
@@ -369,9 +367,11 @@ void setup(){
  
 void loop(){  
   unsigned long currentMillis = millis();
+  //Update the readings every 10 seconds
   if (currentMillis - previousMillis >= interval) {
     // save the last time you updated the DHT values
     previousMillis = currentMillis;
+    //-----------------DHT----------------
     // Read temperature as Celsius (the default)
     float newT = dht.readTemperature();
     // Read temperature as Fahrenheit (isFahrenheit = true)
@@ -394,7 +394,20 @@ void loop(){
       h = newH;
       Serial.println(h);
     }
+    //-----------------SOIL_MOISTURE----------------
+    
+    //Code...
+    
+    //---------------PRESECNE_SENSOR----------------
+    
+    //Code...
+    
+    //-----------------WATER_BOMB----------------
+    
+    //Code...
+
   }
+  //Check for sending messages with WhatsApp.
 }
 
 void sendMessage(String message){
