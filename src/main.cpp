@@ -30,19 +30,24 @@ String apiKey = "1084263";
 
 DHT dht(DHTPIN, DHTTYPE);
 
-// current temperature & humidity, updated in loop()
+// ---------------------------LOOP_VARIABLES-------------------------
+
+//Temperature variable
 float t = 0.0;
+//Relative air humidity variable
 float h = 0.0;
-
-// Create AsyncWebServer object on port 80
-AsyncWebServer server(80);
-
-// Generally, you should use "unsigned long" for variables that hold time
-// The value will quickly become too large for an int to store
-unsigned long previousMillis = 0;    // will store last time DHT was updated
-
+//Soil moisture variable
+float sh = 0.0;
+//Presence variable
+String Presence = "No Detectada";
+//Indicates if it is need to water the plant for WhatsApp notification function
+bool WaterAlert = false;
 // Updates DHT readings every 10 seconds
 const long interval = 10000;  
+// will store last time DHT was updated
+unsigned long previousMillis = 0;    
+// Create AsyncWebServer object on port 80
+AsyncWebServer server(80);
 
 const char index_html[] PROGMEM = R"rawliteral(
 <!DOCTYPE html>
@@ -304,13 +309,23 @@ setInterval(function ( ) {
   var xhttp = new XMLHttpRequest();
   xhttp.onreadystatechange = function() {
     if (this.readyState == 4 && this.status == 200) {
+      document.getElementById("soil_moisture").innerHTML = this.responseText;
+    }
+  };
+  xhttp.open("GET", "/soil_moisture", true);
+  xhttp.send();
+}, 10000 ) ;
+
+setInterval(function ( ) {
+  var xhttp = new XMLHttpRequest();
+  xhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
       document.getElementById("temperature").innerHTML = this.responseText;
     }
   };
   xhttp.open("GET", "/temperature", true);
   xhttp.send();
 }, 10000 ) ;
-
 
 setInterval(function ( ) {
   var xhttp = new XMLHttpRequest();
@@ -322,6 +337,32 @@ setInterval(function ( ) {
   xhttp.open("GET", "/humidity", true);
   xhttp.send();
 }, 10000 ) ;
+
+function togglePlantStatus() {
+  var isChecked = document.getElementById('whatsappToggle').checked;
+  var xhttp = new XMLHttpRequest();
+  xhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+      // Optionally, you can handle the response from the Arduino here
+      console.log("Arduino response:", this.responseText);
+    }
+  };
+  xhttp.open("GET", "/togglePlant?state=" + isChecked, true); // Adjust the endpoint "/togglePlant" as needed
+  xhttp.send();
+}
+
+function waterPlant() {
+  var xhttp = new XMLHttpRequest();
+  xhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+      // Optionally, you can handle the response from the Arduino here
+      console.log("Arduino response:", this.responseText);
+    }
+  };
+  xhttp.open("GET", "/controlWater?state=true", true); // Adjust the endpoint "/controlWater" as needed
+  xhttp.send();
+}
+
 </script>
 </html>
 )rawliteral";
@@ -335,8 +376,38 @@ String processor(const String& var){
   else if(var == "HUMIDITY"){
     return String(h);
   }
+  else if(var == "SOIL_MOISTURE")
+    return String(sh);
   return String();
 }
+
+//Function declarations:
+
+void sendMessage(String message){
+  // Data to send with HTTP POST
+  String url = "http://api.callmebot.com/whatsapp.php?phone=" + phoneNumber + "&apikey=" + apiKey + "&text=" + urlEncode(message);
+  WiFiClient client;    
+  HTTPClient http;
+  http.begin(client, url);
+
+  // Specify content-type header
+  http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+
+  // Send HTTP POST request
+  int httpResponseCode = http.POST(url);
+  if (httpResponseCode == 200){
+    Serial.print("Message sent successfully");
+  }
+  else{
+    Serial.println("Error sending the message");
+    Serial.print("HTTP response code: ");
+    Serial.println(httpResponseCode);
+  }
+  // Free resources
+  http.end();
+}
+
+
 
 void setup(){
   // Serial port for debugging purposes
@@ -364,7 +435,7 @@ void setup(){
   server.on("/humidity", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send_P(200, "text/plain", String(h).c_str());
   });
-
+  
   // Start server
   server.begin();
 }
@@ -405,45 +476,25 @@ void loop(){
     Serial.println(sensorValue);
 
     if (sensorValue < 500){
+      WaterAlert = false;
       Serial.println("No need for watering");
     } 
     else {
+      WaterAlert = true;
       Serial.println("Time to water your plant");
     }
     //----------------PIR_SENSOR-----------------
     int val = digitalRead(PIRPIN);
     if (val == HIGH) {    // Comprobar si el sensor está en HIGH
-      String Presence = "Detectada";
+       Presence = "Detectada";
       //definir variable         
     }
     else {
-      String Presence = "No Detectada";
+       Presence = "No Detectada";
     }
   }
-  //Check for sending messages with WhatsApp.
+  
 }
 
 
-void sendMessage(String message){
-  // Data to send with HTTP POST
-  String url = "http://api.callmebot.com/whatsapp.php?phone=" + phoneNumber + "&apikey=" + apiKey + "&text=" + urlEncode(message);
-  WiFiClient client;    
-  HTTPClient http;
-  http.begin(client, url);
 
-  // Specify content-type header
-  http.addHeader("Content-Type", "application/x-www-form-urlencoded");
-
-  // Send HTTP POST request
-  int httpResponseCode = http.POST(url);
-  if (httpResponseCode == 200){
-    Serial.print("Message sent successfully");
-  }
-  else{
-    Serial.println("Error sending the message");
-    Serial.print("HTTP response code: ");
-    Serial.println(httpResponseCode);
-  }
-  // Free resources
-  http.end();
-}
