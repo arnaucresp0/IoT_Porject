@@ -23,6 +23,10 @@ String apiKey = "1084263";
 //DHT
 #define DHTPIN 5     // Digital pin connected to the DHT sensor
 #define DHTTYPE    DHT22     // DHT 22 (AM2302)
+//MOISTURE PIN
+#define SOIL_MOISTURE_PIN A0
+//PIR SENSOR
+#define PIRPIN 4
 
 DHT dht(DHTPIN, DHTTYPE);
 
@@ -395,20 +399,30 @@ void loop(){
       Serial.println(h);
     }
     //-----------------SOIL_MOISTURE----------------
-    
-    //Code...
-    
-    //---------------PRESECNE_SENSOR----------------
-    
-    //Code...
-    
-    //-----------------WATER_BOMB----------------
-    
-    //Code...
+    // Read the value from the analog sensor:
+    int sensorValue = analogRead(SOIL_MOISTURE_PIN);
+    Serial.print("Sensor value: ");
+    Serial.println(sensorValue);
 
+    if (sensorValue < 500){
+      Serial.println("No need for watering");
+    } 
+    else {
+      Serial.println("Time to water your plant");
+    }
+    //----------------PIR_SENSOR-----------------
+    int val = digitalRead(PIRPIN);
+    if (val == HIGH) {    // Comprobar si el sensor está en HIGH
+      String Presence = "Detectada";
+      //definir variable         
+    }
+    else {
+      String Presence = "No Detectada";
+    }
   }
   //Check for sending messages with WhatsApp.
 }
+
 
 void sendMessage(String message){
   // Data to send with HTTP POST
@@ -430,7 +444,6 @@ void sendMessage(String message){
     Serial.print("HTTP response code: ");
     Serial.println(httpResponseCode);
   }
-
   // Free resources
   http.end();
 }
