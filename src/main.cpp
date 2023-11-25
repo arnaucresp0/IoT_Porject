@@ -46,6 +46,13 @@ bool WaterAlert = false;
 const long interval = 10000;  
 // will store last time DHT was updated
 unsigned long previousMillis = 0;    
+float m = 67.57;
+float n = 70.27;
+String tempAlert;
+String SoilAlert;
+String PresenceAlert;
+int AlertCounter = 3;
+
 // Create AsyncWebServer object on port 80
 AsyncWebServer server(80);
 
@@ -71,19 +78,23 @@ h1 {
 }
 
 .temperature {
-    font-size: 35px;
+    font-size: 30px;
 }
 
 .moisture {
-    font-size: 35px;
+    font-size: 30px;
+}
+
+.soil_moisture{
+  font-size: 30;
 }
 
 .presence {
-    font-size: 35px;
+    font-size: 30px;
 }
 
 .symbol {
-    font-size: 100px;
+    font-size: 50px;
 }
 
 *,
@@ -279,12 +290,27 @@ body {
         <h1>PLANT MONITORING AND WATERING WEB</h1>
         <p>Temperature: <span class="temperature">{{celsiusTemp}} °C</span></p>
         <p>Moisture: <span class="moisture">{{humidity}} %</span></p>
+        <p>Soil Moisture: <span class= "soil_moisture">{{soil}}%</span></p>
         <p>Presence: <span class="presence">{{presence}}</span></p>
         <p class="symbol" id="plantSymbol">🌵</p>
-        
-        <h2>Actions:</h2>
+        <h2>AUTOMATIC MODE:</h2>
+        <div>
+            <label class="toggle">
+            <input class="toggle-checkbox" type="checkbox" id="Mode" onclick="toggleMode()">
+            <div class="toggle-switch"></div>
+            <span class="toggle-label">Automatic Mode</span>
+          </label>
+        </div>
+        <h2>MANUAL ACTIONS:</h2>
         <button class="waterButton" onclick="waterPlant()">Water the plant</button>
-        <button class="alarmButton" onclick="alarmPlant()">Activate the alarm</button>
+        <p></p>
+        <div>
+            <label class="toggle">
+            <input class="toggle-checkbox" type="checkbox" id="AlarmToggle" onclick="toggleAlarmSystem()">
+            <div class="toggle-switch"></div>
+            <span class="toggle-label">Enable alarm system</span>
+          </label>
+        </div>
         <p></p>
         <div>
             <label class="toggle">
@@ -296,7 +322,7 @@ body {
         </div>
         <style>
             .spacer {
-                margin-bottom: 60px; /* Adjust the value as needed */
+                margin-bottom: 40px; /* Adjust the value as needed */
             }
         </style>
         <div class="spacer"></div>
@@ -338,17 +364,18 @@ setInterval(function ( ) {
   xhttp.send();
 }, 10000 ) ;
 
-function togglePlantStatus() {
-  var isChecked = document.getElementById('whatsappToggle').checked;
-  var xhttp = new XMLHttpRequest();
-  xhttp.onreadystatechange = function() {
-    if (this.readyState == 4 && this.status == 200) {
-      // Optionally, you can handle the response from the Arduino here
-      console.log("Arduino response:", this.responseText);
-    }
-  };
-  xhttp.open("GET", "/togglePlant?state=" + isChecked, true); // Adjust the endpoint "/togglePlant" as needed
-  xhttp.send();
+function toggleWhatsAppNotifications(element) {
+  var xhr = new XMLHttpRequest();
+  if(element.checked){ xhr.open("GET", "/update?output="+element.id+"&state=1", true); }
+  else { xhr.open("GET", "/update?output="+element.id+"&state=0", true); }
+  xhr.send();
+}
+
+function toggleAlarmSystem(element) {
+  var xhr = new XMLHttpRequest();
+  if(element.checked){ xhr.open("GET", "/update?output="+element.id+"&state=1", true); }
+  else { xhr.open("GET", "/update?output="+element.id+"&state=0", true); }
+  xhr.send();
 }
 
 function waterPlant() {
@@ -378,6 +405,7 @@ String processor(const String& var){
   }
   else if(var == "SOIL_MOISTURE")
     return String(sh);
+
   return String();
 }
 
@@ -407,7 +435,41 @@ void sendMessage(String message){
   http.end();
 }
 
+void AlertManager(){
+  //This counter is to send WhatsApp notifications every 30 seconds.
+  if (AlertCounter == 0){
+    //Check the temperature
+    if(t >= 25.0){
+      tempAlert = "La termperatura està per sobre de 25ºC."; 
+    }
+    else if( t < 10.0){
+      tempAlert = "La temperatura està per sota de 10ªC.";
+    }
+    else{
+      tempAlert = "La temperatura és adecuada.";
+    }
+    //Check the soil moisture
+    if(sh < 500){
+      SoilAlert = "La planta necessita aigua.";
+    }
+    else{
+      SoilAlert = "La planta està ben regada.";
+    }
+    //Check the presence
+    if(Presence = "Detectada"){
+      PresenceAlert = "Compta s'ha detectat una presència.";
+    } 
+    sendMessage(tempAlert);
+    sendMessage(SoilAlert);
+    sendMessage(PresenceAlert);}
+  else{
+    AlertCounter--;
+  }
+}
 
+void AlarmOn(){
+  //Set the alarm if it is enabled from the webserver and the presence is detected.
+}
 
 void setup(){
   // Serial port for debugging purposes
@@ -434,6 +496,9 @@ void setup(){
   });
   server.on("/humidity", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send_P(200, "text/plain", String(h).c_str());
+  });
+    server.on("/soil_moisture", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send_P(200, "text/plain", String(sh).c_str());
   });
   
   // Start server
@@ -471,18 +536,10 @@ void loop(){
     }
     //-----------------SOIL_MOISTURE----------------
     // Read the value from the analog sensor:
-    int sensorValue = analogRead(SOIL_MOISTURE_PIN);
-    Serial.print("Sensor value: ");
-    Serial.println(sensorValue);
+    float sensorValue = analogRead(SOIL_MOISTURE_PIN);
+    //Transform the analog calue to %
+    sh = (m * sensorValue - n);
 
-    if (sensorValue < 500){
-      WaterAlert = false;
-      Serial.println("No need for watering");
-    } 
-    else {
-      WaterAlert = true;
-      Serial.println("Time to water your plant");
-    }
     //----------------PIR_SENSOR-----------------
     int val = digitalRead(PIRPIN);
     if (val == HIGH) {    // Comprobar si el sensor está en HIGH
@@ -492,6 +549,7 @@ void loop(){
     else {
        Presence = "No Detectada";
     }
+    AlertManager();
   }
   
 }
