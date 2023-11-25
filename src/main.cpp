@@ -11,8 +11,6 @@
 #include <Hash.h>
 
 
-
-
 // Replace with your network credentials
 const char* ssid = "REPLACE_WITH_YOUR_SSID";
 const char* password = "REPLACE_WITH_YOUR_PASSWORD";
@@ -27,6 +25,10 @@ String apiKey = "1084263";
 #define SOIL_MOISTURE_PIN A0
 //PIR SENSOR
 #define PIRPIN 4
+//WATER BOMB PIN
+#define WATER_BOMB_PIN 3
+//ALARM PIN
+#define ALARM_PIN 2
 
 DHT dht(DHTPIN, DHTTYPE);
 
@@ -45,17 +47,23 @@ bool WaterAlert = false;
 // Updates DHT readings every 10 seconds
 const long interval = 10000;  
 // will store last time DHT was updated
-unsigned long previousMillis = 0;    
+unsigned long previousMillis = 0;  
+// These two variables set the equation to convert from analog reading to %  
 float m = 67.57;
 float n = 70.27;
+//These three string variables are for displaying the WhatsApp
 String tempAlert;
 String SoilAlert;
 String PresenceAlert;
+//Alert counter to send WhApp messages every 30 sec.
 int AlertCounter = 3;
+//Automatic mode variable.
+bool AutoModeVar;
 
 // Create AsyncWebServer object on port 80
 AsyncWebServer server(80);
 
+//Full HTML & CSS & JavaScript code
 const char index_html[] PROGMEM = R"rawliteral(
 <!DOCTYPE html>
 <html>
@@ -471,6 +479,28 @@ void AlarmOn(){
   //Set the alarm if it is enabled from the webserver and the presence is detected.
 }
 
+void AutoMode(){
+  //Set the automatic mode for watering and alarm usage.
+  if(AutoModeVar == true){
+    while (sh <= 500){
+      digitalWrite(WATER_BOMB_PIN, HIGH);
+    }
+    if(Presence == "Detectada"){
+      digitalWrite(ALARM_PIN,HIGH);
+      delay(300);
+      digitalWrite(ALARM_PIN,LOW);
+      delay(300);
+      digitalWrite(ALARM_PIN,HIGH);
+      delay(300);
+      digitalWrite(ALARM_PIN,LOW);
+      delay(300);
+      digitalWrite(ALARM_PIN,HIGH);
+      delay(300);
+      digitalWrite(ALARM_PIN,HIGH);
+    }
+  }
+}
+
 void setup(){
   // Serial port for debugging purposes
   Serial.begin(115200);
@@ -551,7 +581,6 @@ void loop(){
     }
     AlertManager();
   }
-  
 }
 
 
