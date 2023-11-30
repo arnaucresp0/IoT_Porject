@@ -59,6 +59,13 @@ String PresenceAlert;
 int AlertCounter = 3;
 //Automatic mode variable.
 bool AutoModeVar;
+//Variable that enable the WApp notifications.
+bool whatsappNotificationsEnabled = false;
+//Variable that enable the Alarm system.
+bool alarmSystemEnabled = false;
+unsigned long waterStartTime = 0;
+const unsigned long waterDuration = 3000; // milliseconds
+
 
 // Create AsyncWebServer object on port 80
 AsyncWebServer server(80);
@@ -373,17 +380,17 @@ setInterval(function ( ) {
 }, 10000 ) ;
 
 function toggleWhatsAppNotifications(element) {
-  var xhr = new XMLHttpRequest();
-  if(element.checked){ xhr.open("GET", "/update?output="+element.id+"&state=1", true); }
-  else { xhr.open("GET", "/update?output="+element.id+"&state=0", true); }
-  xhr.send();
+  var xhttp = new XMLHttpRequest();
+  if(element.checked){ xhttp.open("GET", "/update?output="+element.id+"&state=1", true); }
+  else { xhttp.open("GET", "/update?output="+element.id+"&state=0", true); }
+  xhttp.send();
 }
 
 function toggleAlarmSystem(element) {
-  var xhr = new XMLHttpRequest();
-  if(element.checked){ xhr.open("GET", "/update?output="+element.id+"&state=1", true); }
-  else { xhr.open("GET", "/update?output="+element.id+"&state=0", true); }
-  xhr.send();
+  var xhttp = new XMLHttpRequest();
+  if(element.checked){ xhttp.open("GET", "/update?output="+element.id+"&state=1", true); }
+  else { xhttp.open("GET", "/update?output="+element.id+"&state=0", true); }
+  xhttp.send();
 }
 
 function waterPlant() {
@@ -444,63 +451,73 @@ void sendMessage(String message){
 }
 
 void AlertManager(){
-  //This counter is to send WhatsApp notifications every 30 seconds.
-  if (AlertCounter == 0){
-    //Check the temperature
-    if(t >= 25.0){
-      tempAlert = "La termperatura està per sobre de 25ºC."; 
-    }
-    else if( t < 10.0){
-      tempAlert = "La temperatura està per sota de 10ªC.";
-    }
+  if (whatsappNotificationsEnabled == true){
+    //This counter is to send WhatsApp notifications every 30 seconds.
+    if (AlertCounter == 0){
+      //Check the temperature
+      if(t >= 25.0){
+        tempAlert = "La termperatura està per sobre de 25ºC."; 
+      }
+      else if( t < 10.0){
+        tempAlert = "La temperatura està per sota de 10ªC.";
+      }
+      else{
+        tempAlert = "La temperatura és adecuada.";
+      }
+      //Check the soil moisture
+      if(sh < 500){
+        SoilAlert = "La planta necessita aigua.";
+      }
+      else{
+        SoilAlert = "La planta està ben regada.";
+      }
+      //Check the presence
+      if(Presence = "Detectada"){
+        PresenceAlert = "Compta s'ha detectat una presència.";
+      } 
+      sendMessage(tempAlert);
+      sendMessage(SoilAlert);
+      sendMessage(PresenceAlert);}
     else{
-      tempAlert = "La temperatura és adecuada.";
+      AlertCounter--;
     }
-    //Check the soil moisture
-    if(sh < 500){
-      SoilAlert = "La planta necessita aigua.";
-    }
-    else{
-      SoilAlert = "La planta està ben regada.";
-    }
-    //Check the presence
-    if(Presence = "Detectada"){
-      PresenceAlert = "Compta s'ha detectat una presència.";
-    } 
-    sendMessage(tempAlert);
-    sendMessage(SoilAlert);
-    sendMessage(PresenceAlert);}
-  else{
-    AlertCounter--;
   }
 }
 
 void AlarmOn(){
-  //Set the alarm if it is enabled from the webserver and the presence is detected.
+  if (alarmSystemEnabled == true) {
+      while(millis() < 3000){
+        digitalWrite(ALARM_PIN, HIGH);
+        delay(50);
+        digitalWrite(ALARM_PIN,LOW);
+      }
+  
+  }
+} 
+
+void PlantWatering(){
+  if (millis() - waterStartTime < waterDuration) {
+    // Activate the water bomb pin
+    digitalWrite(WATER_BOMB_PIN, HIGH);
+  } else {
+    // Deactivate the water bomb pin
+    digitalWrite(WATER_BOMB_PIN, LOW);
+  }
 }
 
 void AutoMode(){
   //Set the automatic mode for watering and alarm usage.
   if(AutoModeVar == true){
-    while (sh <= 500){
-      digitalWrite(WATER_BOMB_PIN, HIGH);
+    if (sh <= 500){
+      PlantWatering();
     }
     if(Presence == "Detectada"){
-      digitalWrite(ALARM_PIN,HIGH);
-      delay(300);
-      digitalWrite(ALARM_PIN,LOW);
-      delay(300);
-      digitalWrite(ALARM_PIN,HIGH);
-      delay(300);
-      digitalWrite(ALARM_PIN,LOW);
-      delay(300);
-      digitalWrite(ALARM_PIN,HIGH);
-      delay(300);
-      digitalWrite(ALARM_PIN,HIGH);
+      AlarmOn();
     }
   }
 }
 
+//SETUP
 void setup(){
   // Serial port for debugging purposes
   Serial.begin(115200);
@@ -530,11 +547,43 @@ void setup(){
     server.on("/soil_moisture", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send_P(200, "text/plain", String(sh).c_str());
   });
+  server.on("/update", HTTP_GET, [](AsyncWebServerRequest *request){
+  String output = request->arg("output");
+  String state = request->arg("state");
+  if (output == "whatsappToggle") {
+    whatsappNotificationsEnabled = (state == "1");
+  }
+  request->send(200, "text/plain", "OK");
+  });
+
+  server.on("/update", HTTP_GET, [](AsyncWebServerRequest *request){
+    String output = request->arg("output");
+    String state = request->arg("state");
+
+    // Assuming you have an output named "AlarmToggle"
+    if (output == "AlarmToggle") {
+      // Update the variable based on the state received
+      alarmSystemEnabled = (state == "1");
+    }
+
+    request->send(200, "text/plain", "OK");
+  });
+
+  server.on("/controlWater", HTTP_GET, [](AsyncWebServerRequest *request){
+  String state = request->arg("state");
+
+  if (state == "true") {
+    waterStartTime = millis();
+  }
+
+  request->send(200, "text/plain", "OK");
+  });
+
   
   // Start server
   server.begin();
 }
- 
+//MAIN
 void loop(){  
   unsigned long currentMillis = millis();
   //Update the readings every 10 seconds
@@ -573,13 +622,13 @@ void loop(){
     //----------------PIR_SENSOR-----------------
     int val = digitalRead(PIRPIN);
     if (val == HIGH) {    // Comprobar si el sensor está en HIGH
-       Presence = "Detectada";
-      //definir variable         
+       Presence = "Detectada";        
     }
     else {
        Presence = "No Detectada";
     }
     AlertManager();
+
   }
 }
 
