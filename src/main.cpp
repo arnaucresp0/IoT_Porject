@@ -303,10 +303,10 @@ body {
 <body>
     <div class="container">
         <h1>PLANT MONITORING AND WATERING WEB</h1>
-        <p>Temperature: <span class="temperature">{{celsiusTemp}} °C</span></p>
-        <p>Moisture: <span class="moisture">{{humidity}} %</span></p>
-        <p>Soil Moisture: <span class= "soil_moisture">{{soil}}%</span></p>
-        <p>Presence: <span class="presence">{{presence}}</span></p>
+        <p>Temperature: <span class="temperature">{{TEMPERATURE}} °C</span></p>
+        <p>Moisture: <span class="moisture">{{HUMIDITY}} %</span></p>
+        <p>Soil Moisture: <span class= "soil_moisture">{{SOIL_MOISTURE}}%</span></p>
+        <p>Presence: <span class="presence">{{PRESENCE}}</span></p>
         <p class="symbol" id="plantSymbol">🌵</p>
         <h2>AUTOMATIC MODE:</h2>
         <div>
@@ -409,7 +409,7 @@ function waterPlant() {
 </html>
 )rawliteral";
 
-// Replaces placeholder with DHT values
+// Replaces placeholder with sensor values
 String processor(const String& var){
   //Serial.println(var);
   if(var == "TEMPERATURE"){
@@ -420,6 +420,9 @@ String processor(const String& var){
   }
   else if(var == "SOIL_MOISTURE")
     return String(sh);
+
+  else if (var == "PRESENCE")
+    return String(Presence);
 
   return String();
 }
@@ -628,8 +631,9 @@ void loop(){
        Presence = "No Detectada";
     }
     AlertManager();
-
   }
+  AutoMode();
+  PlantWatering();
 }
 
 
