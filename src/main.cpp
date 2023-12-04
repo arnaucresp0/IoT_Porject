@@ -74,339 +74,362 @@ AsyncWebServer server(80);
 const char index_html[] PROGMEM = R"rawliteral(
 <!DOCTYPE html>
 <html>
-<head><meta http-equiv="cache-control" content="no-cache"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="-1"><style type="text/css">body {
-    font-family: Arial, sans-serif;
-    text-align: center;
-}
 
-.container {
-    margin: 0 auto;
-    max-width: auto;
-    padding: 25px;
-    border: 2px solid #000000;
-    border-radius: 10px;
-    background-color: #ffac9c;
-}
+<head>
+    <meta http-equiv="cache-control" content="no-cache">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="-1">
+    <style type="text/css">
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
 
-h1 {
-    color: #333;
-}
+        .container {
+            margin: 0 auto;
+            max-width: auto;
+            padding: 25px;
+            border: 2px solid #000000;
+            border-radius: 10px;
+            background-color: #ffac9c;
+        }
 
-.temperature {
-    font-size: 30px;
-}
+        h1 {
+            color: #333;
+        }
 
-.moisture {
-    font-size: 30px;
-}
+        .temperature {
+            font-size: 30px;
+        }
 
-.soil_moisture{
-  font-size: 30;
-}
+        .moisture {
+            font-size: 30px;
+        }
 
-.presence {
-    font-size: 30px;
-}
+        .soil_moisture {
+            font-size: 30;
+        }
 
-.symbol {
-    font-size: 50px;
-}
+        .presence {
+            font-size: 30px;
+        }
 
-*,
-*:before,
-*:after {
-  box-sizing: border-box;
-}
+        .symbol {
+            font-size: 50px;
+        }
 
-body {
-  font-family: -apple-system, ".SFNSText-Regular", "Helvetica Neue", "Roboto", "Segoe UI", sans-serif;
-}
+        *,
+        *:before,
+        *:after {
+            box-sizing: border-box;
+        }
 
-.toggle {
-  cursor: pointer;
-  display: inline-block;
-}
+        body {
+            font-family: -apple-system, ".SFNSText-Regular", "Helvetica Neue", "Roboto", "Segoe UI", sans-serif;
+        }
 
-.toggle-switch {
-  display: inline-block;
-  background: #ccc;
-  border-radius: 16px;
-  width: 58px;
-  height: 32px;
-  position: relative;
-  vertical-align: middle;
-  transition: background 0.25s;
-}
-.toggle-switch:before, .toggle-switch:after {
-  content: "";
-}
-.toggle-switch:before {
-  display: block;
-  background: linear-gradient(to bottom, #fff 0%, #eee 100%);
-  border-radius: 50%;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25);
-  width: 24px;
-  height: 24px;
-  position: absolute;
-  top: 4px;
-  left: 4px;
-  transition: left 0.25s;
-}
-.toggle:hover .toggle-switch:before {
-  background: linear-gradient(to bottom, #fff 0%, #fff 100%);
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5);
-}
-.toggle-checkbox:checked + .toggle-switch {
-  background: #56c080;
-}
-.toggle-checkbox:checked + .toggle-switch:before {
-  left: 30px;
-}
+        .toggle {
+            cursor: pointer;
+            display: inline-block;
+        }
 
-.toggle-checkbox {
-  position: absolute;
-  visibility: hidden;
-}
+        .toggle-switch {
+            display: inline-block;
+            background: #ccc;
+            border-radius: 16px;
+            width: 58px;
+            height: 32px;
+            position: relative;
+            vertical-align: middle;
+            transition: background 0.25s;
+        }
 
-.toggle-label {
-  margin-left: 5px;
-  position: relative;
-  top: 2px;
-}
+        .toggle-switch:before,
+        .toggle-switch:after {
+            content: "";
+        }
 
+        .toggle-switch:before {
+            display: block;
+            background: linear-gradient(to bottom, #fff 0%, #eee 100%);
+            border-radius: 50%;
+            box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25);
+            width: 24px;
+            height: 24px;
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            transition: left 0.25s;
+        }
 
-.waterButton {
-  background: #fff;
-  backface-visibility: hidden;
-  border-radius: .375rem;
-  border-style: solid;
-  border-width: .125rem;
-  box-sizing: border-box;
-  color: #212121;
-  cursor: pointer;
-  display: inline-block;
-  font-family: Circular,Helvetica,sans-serif;
-  font-size: 1.125rem;
-  font-weight: 700;
-  letter-spacing: -.01em;
-  line-height: 1.3;
-  padding: .875rem 1.125rem;
-  position: relative;
-  text-align: left;
-  text-decoration: none;
-  transform: translateZ(0) scale(1);
-  transition: transform .2s;
-  user-select: none;
-  -webkit-user-select: none;
-  touch-action: manipulation;
-}
+        .toggle:hover .toggle-switch:before {
+            background: linear-gradient(to bottom, #fff 0%, #fff 100%);
+            box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5);
+        }
 
-.waterButton:not(:disabled):hover {
-  transform: scale(1.05);
-}
+        .toggle-checkbox:checked+.toggle-switch {
+            background: #56c080;
+        }
 
-.waterButton:not(:disabled):hover:active {
-  transform: scale(1.05) translateY(.125rem);
-}
+        .toggle-checkbox:checked+.toggle-switch:before {
+            left: 30px;
+        }
 
-.waterButton:focus {
-  outline: 0 solid transparent;
-}
+        .toggle-checkbox {
+            position: absolute;
+            visibility: hidden;
+        }
 
-.waterButton:focus:before {
-  content: "";
-  left: calc(-1*.375rem);
-  pointer-events: none;
-  position: absolute;
-  top: calc(-1*.375rem);
-  transition: border-radius;
-  user-select: none;
-}
+        .toggle-label {
+            margin-left: 5px;
+            position: relative;
+            top: 2px;
+        }
 
-.waterButton:focus:not(:focus-visible) {
-  outline: 0 solid transparent;
-}
+        .waterButton {
+            background: #fff;
+            backface-visibility: hidden;
+            border-radius: .375rem;
+            border-style: solid;
+            border-width: .125rem;
+            box-sizing: border-box;
+            color: #212121;
+            cursor: pointer;
+            display: inline-block;
+            font-family: Circular, Helvetica, sans-serif;
+            font-size: 1.125rem;
+            font-weight: 700;
+            letter-spacing: -.01em;
+            line-height: 1.3;
+            padding: .875rem 1.125rem;
+            position: relative;
+            text-align: left;
+            text-decoration: none;
+            transform: translateZ(0) scale(1);
+            transition: transform .2s;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
 
-.waterButton:focus:not(:focus-visible):before {
-  border-width: 0;
-}
+        .waterButton:not(:disabled):hover {
+            transform: scale(1.05);
+        }
 
-.waterButton:not(:disabled):active {
-  transform: translateY(.125rem);
-}
+        .waterButton:not(:disabled):hover:active {
+            transform: scale(1.05) translateY(.125rem);
+        }
 
-.alarmButton {
-  background: #fff;
-  backface-visibility: hidden;
-  border-radius: .375rem;
-  border-style: solid;
-  border-width: .125rem;
-  box-sizing: border-box;
-  color: #212121;
-  cursor: pointer;
-  display: inline-block;
-  font-family: Circular,Helvetica,sans-serif;
-  font-size: 1.125rem;
-  font-weight: 700;
-  letter-spacing: -.01em;
-  line-height: 1.3;
-  padding: .875rem 1.125rem;
-  position: relative;
-  text-align: left;
-  text-decoration: none;
-  transform: translateZ(0) scale(1);
-  transition: transform .2s;
-  user-select: none;
-  -webkit-user-select: none;
-  touch-action: manipulation;
-}
+        .waterButton:focus {
+            outline: 0 solid transparent;
+        }
 
-.alarmButton:not(:disabled):hover {
-  transform: scale(1.05);
-}
+        .waterButton:focus:before {
+            content: "";
+            left: calc(-1*.375rem);
+            pointer-events: none;
+            position: absolute;
+            top: calc(-1*.375rem);
+            transition: border-radius;
+            user-select: none;
+        }
 
-.alarmButton:not(:disabled):hover:active {
-  transform: scale(1.05) translateY(.125rem);
-}
+        .waterButton:focus:not(:focus-visible) {
+            outline: 0 solid transparent;
+        }
 
-.alarmButton:focus {
-  outline: 0 solid transparent;
-}
+        .waterButton:focus:not(:focus-visible):before {
+            border-width: 0;
+        }
 
-.alarmButton:focus:before {
-  content: "";
-  left: calc(-1*.375rem);
-  pointer-events: none;
-  position: absolute;
-  top: calc(-1*.375rem);
-  transition: border-radius;
-  user-select: none;
-}
+        .waterButton:not(:disabled):active {
+            transform: translateY(.125rem);
+        }
 
-.alarmButton:focus:not(:focus-visible) {
-  outline: 0 solid transparent;
-}
+        .alarmButton {
+            background: #fff;
+            backface-visibility: hidden;
+            border-radius: .375rem;
+            border-style: solid;
+            border-width: .125rem;
+            box-sizing: border-box;
+            color: #212121;
+            cursor: pointer;
+            display: inline-block;
+            font-family: Circular, Helvetica, sans-serif;
+            font-size: 1.125rem;
+            font-weight: 700;
+            letter-spacing: -.01em;
+            line-height: 1.3;
+            padding: .875rem 1.125rem;
+            position: relative;
+            text-align: left;
+            text-decoration: none;
+            transform: translateZ(0) scale(1);
+            transition: transform .2s;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
 
-.alarmButton:focus:not(:focus-visible):before {
-  border-width: 0;
-}
+        .alarmButton:not(:disabled):hover {
+            transform: scale(1.05);
+        }
 
-.alarmButton:not(:disabled):active {
-  transform: translateY(.125rem);
-}</style>
+        .alarmButton:not(:disabled):hover:active {
+            transform: scale(1.05) translateY(.125rem);
+        }
+
+        .alarmButton:focus {
+            outline: 0 solid transparent;
+        }
+
+        .alarmButton:focus:before {
+            content: "";
+            left: calc(-1*.375rem);
+            pointer-events: none;
+            position: absolute;
+            top: calc(-1*.375rem);
+            transition: border-radius;
+            user-select: none;
+        }
+
+        .alarmButton:focus:not(:focus-visible) {
+            outline: 0 solid transparent;
+        }
+
+        .alarmButton:focus:not(:focus-visible):before {
+            border-width: 0;
+        }
+
+        .alarmButton:not(:disabled):active {
+            transform: translateY(.125rem);
+        }
+    </style>
 
 
     <title>IOT PROJECT</title>
     <link rel="stylesheet" trype="text/css" href="styles.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+    <link rel="icon" href="data:,">
 </head>
 
 <body>
     <div class="container">
         <h1>PLANT MONITORING AND WATERING WEB</h1>
-        <p>Temperature: <span class="temperature">{{TEMPERATURE}} °C</span></p>
-        <p>Moisture: <span class="moisture">{{HUMIDITY}} %</span></p>
-        <p>Soil Moisture: <span class= "soil_moisture">{{SOIL_MOISTURE}}%</span></p>
+        <p>Temperature: <span class="temperature">{{TEMPERATURE}}</span> °C</p>
+        <p>Moisture: <span class="moisture">{{HUMIDITY}}</span> % </p>
+        <p>Soil Moisture: <span class="soil_moisture">{{SOIL_MOISTURE}}</span> %</p>
         <p>Presence: <span class="presence">{{PRESENCE}}</span></p>
-        <p class="symbol" id="plantSymbol">🌵</p>
+        <p class="symbol" id="plantSymbol"> <i class="fab fa-pagelines" style="color: #24bc52;"></i> </p>
         <h2>AUTOMATIC MODE:</h2>
         <div>
             <label class="toggle">
-            <input class="toggle-checkbox" type="checkbox" id="Mode" onclick="toggleMode()">
-            <div class="toggle-switch"></div>
-            <span class="toggle-label">Automatic Mode</span>
-          </label>
+                <input class="toggle-checkbox" type="checkbox" id="Mode" onclick="toggleMode()">
+                <div class="toggle-switch"></div>
+                <span class="toggle-label">Automatic Mode</span>
+            </label>
         </div>
         <h2>MANUAL ACTIONS:</h2>
         <button class="waterButton" onclick="waterPlant()">Water the plant</button>
         <p></p>
         <div>
             <label class="toggle">
-            <input class="toggle-checkbox" type="checkbox" id="AlarmToggle" onclick="toggleAlarmSystem()">
-            <div class="toggle-switch"></div>
-            <span class="toggle-label">Enable alarm system</span>
-          </label>
+                <input class="toggle-checkbox" type="checkbox" id="AlarmToggle" onclick="toggleAlarmSystem()">
+                <div class="toggle-switch"></div>
+                <span class="toggle-label">Enable alarm system</span>
+            </label>
         </div>
         <p></p>
         <div>
             <label class="toggle">
-            <input class="toggle-checkbox" type="checkbox" id="whatsappToggle" onclick="toggleWhatsAppNotifications()">
-            <div class="toggle-switch"></div>
-            <span class="toggle-label">WhatsApp Notifications</span>
-          </label>
-          
+                <input class="toggle-checkbox" type="checkbox" id="whatsappToggle"
+                    onclick="toggleWhatsAppNotifications()">
+                <div class="toggle-switch"></div>
+                <span class="toggle-label">WhatsApp Notifications</span>
+            </label>
+
         </div>
         <style>
             .spacer {
-                margin-bottom: 40px; /* Adjust the value as needed */
+                margin-bottom: 40px;
             }
         </style>
         <div class="spacer"></div>
-        <div class="footer">©<span id="year"> </span><span> Universitat politècnica de Catalunya. All rights reserved.</span></div>
+        <div class="footer">©<span id="year"> </span><span> Universitat politècnica de Catalunya. All rights
+                reserved.</span></div>
     </div>
 
 
-<script>
-setInterval(function ( ) {
-  var xhttp = new XMLHttpRequest();
-  xhttp.onreadystatechange = function() {
-    if (this.readyState == 4 && this.status == 200) {
-      document.getElementById("soil_moisture").innerHTML = this.responseText;
-    }
-  };
-  xhttp.open("GET", "/soil_moisture", true);
-  xhttp.send();
-}, 10000 ) ;
+    <script>
+        setInterval(function () {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    document.getElementById("soil_moisture").innerHTML = this.responseText;
+                }
+            };
+            xhttp.open("GET", "/soil_moisture", true);
+            xhttp.send();
+        }, 10000);
 
-setInterval(function ( ) {
-  var xhttp = new XMLHttpRequest();
-  xhttp.onreadystatechange = function() {
-    if (this.readyState == 4 && this.status == 200) {
-      document.getElementById("temperature").innerHTML = this.responseText;
-    }
-  };
-  xhttp.open("GET", "/temperature", true);
-  xhttp.send();
-}, 10000 ) ;
+        setInterval(function () {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    document.getElementById("temperature").innerHTML = this.responseText;
+                }
+            };
+            xhttp.open("GET", "/temperature", true);
+            xhttp.send();
+        }, 10000);
 
-setInterval(function ( ) {
-  var xhttp = new XMLHttpRequest();
-  xhttp.onreadystatechange = function() {
-    if (this.readyState == 4 && this.status == 200) {
-      document.getElementById("humidity").innerHTML = this.responseText;
-    }
-  };
-  xhttp.open("GET", "/humidity", true);
-  xhttp.send();
-}, 10000 ) ;
+        setInterval(function () {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    document.getElementById("humidity").innerHTML = this.responseText;
+                }
+            };
+            xhttp.open("GET", "/humidity", true);
+            xhttp.send();
+        }, 10000);
 
-function toggleWhatsAppNotifications(element) {
-  var xhttp = new XMLHttpRequest();
-  if(element.checked){ xhttp.open("GET", "/update?output="+element.id+"&state=1", true); }
-  else { xhttp.open("GET", "/update?output="+element.id+"&state=0", true); }
-  xhttp.send();
-}
+        function toggleWhatsAppNotifications(element) {
+            var xhttp = new XMLHttpRequest();
+            if (element.checked) {
+                xhttp.open("GET", "/update?output=" + element.id + "&state=1", true);
+            } else {
+                xhttp.open("GET", "/update?output=" + element.id + "&state=0", true);
+            }
+            xhttp.send();
+        }
 
-function toggleAlarmSystem(element) {
-  var xhttp = new XMLHttpRequest();
-  if(element.checked){ xhttp.open("GET", "/update?output="+element.id+"&state=1", true); }
-  else { xhttp.open("GET", "/update?output="+element.id+"&state=0", true); }
-  xhttp.send();
-}
+        function toggleAlarmSystem(element) {
+            var xhttp = new XMLHttpRequest();
+            if (element.checked) {
+                xhttp.open("GET", "/update?output=" + element.id + "&state=1", true);
+            } else {
+                xhttp.open("GET", "/update?output=" + element.id + "&state=0", true);
+            }
+            xhttp.send();
+        }
 
-function waterPlant() {
-  var xhttp = new XMLHttpRequest();
-  xhttp.onreadystatechange = function() {
-    if (this.readyState == 4 && this.status == 200) {
-      // Optionally, you can handle the response from the Arduino here
-      console.log("Arduino response:", this.responseText);
-    }
-  };
-  xhttp.open("GET", "/controlWater?state=true", true); // Adjust the endpoint "/controlWater" as needed
-  xhttp.send();
-}
+        function waterPlant() {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    console.log("Arduino response:", this.responseText);
+                }
+            };
+            xhttp.open("GET", "/controlWater?state=true", true); 
+            xhttp.send();
+        }
+    </script>
+</body>
 
-</script>
 </html>
+
 )rawliteral";
 
 // Replaces placeholder with sensor values
@@ -455,6 +478,7 @@ void sendMessage(String message){
 
 void AlertManager(){
   if (whatsappNotificationsEnabled == true){
+    Serial.println("Notificacions habilitades.");
     //This counter is to send WhatsApp notifications every 30 seconds.
     if (AlertCounter == 0){
       //Check the temperature
@@ -489,6 +513,7 @@ void AlertManager(){
 
 void AlarmOn(){
   if (alarmSystemEnabled == true) {
+      Serial.println("Alarma habilitada.");
       while(millis() < 3000){
         digitalWrite(ALARM_PIN, HIGH);
         delay(50);
@@ -511,6 +536,7 @@ void PlantWatering(){
 void AutoMode(){
   //Set the automatic mode for watering and alarm usage.
   if(AutoModeVar == true){
+    Serial.print("Mode automàtic habilitat");
     if (sh <= 500){
       PlantWatering();
     }
@@ -600,7 +626,7 @@ void loop(){
     //float newT = dht.readTemperature(true);
     // if temperature read failed, don't change t value
     if (isnan(newT)) {
-      Serial.println("Failed to read from DHT sensor!");
+      Serial.println("Failed to read temperature from DHT sensor!");
     }
     else {
       t = newT;
@@ -610,7 +636,7 @@ void loop(){
     float newH = dht.readHumidity();
     // if humidity read failed, don't change h value 
     if (isnan(newH)) {
-      Serial.println("Failed to read from DHT sensor!");
+      Serial.println("Failed to read humidity from DHT sensor!");
     }
     else {
       h = newH;
@@ -621,7 +647,8 @@ void loop(){
     float sensorValue = analogRead(SOIL_MOISTURE_PIN);
     //Transform the analog calue to %
     sh = (m * sensorValue - n);
-
+    Serial.print("Soil moisture reading:" );
+    Serial.println(sh);
     //----------------PIR_SENSOR-----------------
     int val = digitalRead(PIRPIN);
     if (val == HIGH) {    // Comprobar si el sensor está en HIGH
