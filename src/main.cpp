@@ -107,7 +107,7 @@ const char index_html[] PROGMEM = R"rawliteral(
         }
 
         .soil_moisture {
-            font-size: 30;
+            font-size: 30px;
         }
 
         .presence {
@@ -317,10 +317,12 @@ const char index_html[] PROGMEM = R"rawliteral(
 <body>
     <div class="container">
         <h1>PLANT MONITORING AND WATERING WEB</h1>
-        <p>Temperature: <span class="temperature">{{TEMPERATURE}}</span> °C</p>
-        <p>Moisture: <span class="moisture">{{HUMIDITY}}</span> % </p>
-        <p>Soil Moisture: <span class="soil_moisture">{{SOIL_MOISTURE}}</span> %</p>
-        <p>Presence: <span class="presence">{{PRESENCE}}</span></p>
+        <p>Temperature: <span class="temperature">%TEMPERATURE%</span> °C</p>
+        <p></p>
+        <p>Moisture: <span class="moisture">%HUMIDITY%</span> % </p>
+        <p></p>
+        <p>SoilMoisture: <span class="soil_moisture">%SOIL_MOISTURE%</span> %</p>
+        <p>Presence: <span class="presence">%PRESENCE%</span></p>
         <p class="symbol" id="plantSymbol"> <i class="fab fa-pagelines" style="color: #24bc52;"></i> </p>
         <h2>AUTOMATIC MODE:</h2>
         <div>
@@ -348,7 +350,6 @@ const char index_html[] PROGMEM = R"rawliteral(
                 <div class="toggle-switch"></div>
                 <span class="toggle-label">WhatsApp Notifications</span>
             </label>
-
         </div>
         <style>
             .spacer {
@@ -356,11 +357,10 @@ const char index_html[] PROGMEM = R"rawliteral(
             }
         </style>
         <div class="spacer"></div>
-        <div class="footer">©<span id="year"> </span><span> Universitat politècnica de Catalunya. All rights
+        <div class="footer">©<span id="year"> </span><span> Universitat politecnica de Catalunya. All rights
                 reserved.</span></div>
-    </div>
-
-
+      </div>
+    
     <script>
         setInterval(function () {
             var xhttp = new XMLHttpRequest();
@@ -427,9 +427,7 @@ const char index_html[] PROGMEM = R"rawliteral(
         }
     </script>
 </body>
-
 </html>
-
 )rawliteral";
 
 // Replaces placeholder with sensor values
@@ -521,12 +519,14 @@ void AlarmOn(){
       }
   
   }
+
 } 
 
 void PlantWatering(){
   if (millis() - waterStartTime < waterDuration) {
     // Activate the water bomb pin
     digitalWrite(WATER_BOMB_PIN, HIGH);
+    Serial.println("Water Bomb activated!");
   } else {
     // Deactivate the water bomb pin
     digitalWrite(WATER_BOMB_PIN, LOW);
@@ -577,10 +577,10 @@ void setup(){
     request->send_P(200, "text/plain", String(sh).c_str());
   });
   server.on("/update", HTTP_GET, [](AsyncWebServerRequest *request){
-  String output = request->arg("output");
-  String state = request->arg("state");
-  if (output == "whatsappToggle") {
-    whatsappNotificationsEnabled = (state == "1");
+    String output = request->arg("output");
+    String state = request->arg("state");
+    if (output == "whatsappToggle") {
+      whatsappNotificationsEnabled = (state == "1");
   }
   request->send(200, "text/plain", "OK");
   });
@@ -646,7 +646,8 @@ void loop(){
     // Read the value from the analog sensor:
     float sensorValue = analogRead(SOIL_MOISTURE_PIN);
     //Transform the analog calue to %
-    sh = (m * sensorValue - n);
+    //sh = ((m * sensorValue) - n);
+    sh = sensorValue;
     Serial.print("Soil moisture reading:" );
     Serial.println(sh);
     //----------------PIR_SENSOR-----------------
