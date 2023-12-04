@@ -12,8 +12,8 @@
 
 
 // Replace with your network credentials
-const char* ssid = "REPLACE_WITH_YOUR_SSID";
-const char* password = "REPLACE_WITH_YOUR_PASSWORD";
+const char* ssid = "Fibracat_10156";
+const char* password = "9f6496aa11";
 //Replace with your country code (i.e. +34) and phone number
 String phoneNumber = "+34722254551"; 
 String apiKey = "1084263";
