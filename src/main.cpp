@@ -316,9 +316,9 @@ const char index_html[] PROGMEM = R"rawliteral(
 <body>
     <div class="container">
         <h1>PLANT MONITORING AND WATERING WEB</h1>
-        <p>Temperature: <span class="temperature">%TEMPERATURE%</span></p>
-        <p>Moisture: <span class="humidity">%HUMIDITY%</span> </p>
-        <p>Soil Moisture: <span class="soil_moisture">%SOIL_MOISTURE%</span></p>
+        <p>Temperature: <span  id="temperature" class="temperature">%TEMPERATURE%</span></p>
+        <p>Moisture: <span  id="humidity" class="humidity">%HUMIDITY%</span> </p>
+        <p>Soil Moisture: <span id="soil_moisture" class="soil_moisture">%SOIL_MOISTURE%</span></p>
         <p>Presence: <span class="presence">%PRESENCE%</span></p>
         <p class="symbol" id="plantSymbol"> <i class="fab fa-pagelines" style="color: #24bc52;"></i> </p>
         <h2>AUTOMATIC MODE:</h2>
@@ -359,70 +359,69 @@ const char index_html[] PROGMEM = R"rawliteral(
       </div>
     
     <script>
+      setInterval ( function () {
+          var xhttp = new XMLHttpRequest();
+          xhttp.onreadystatechange = function () {
+              if (this.readyState == 4 && this.status == 200) {
+                  document.getElementById("temperature").innerHTML = this.responseText;
+              }
+          };
+          xhttp.open("GET", "/temperature", true);
+          xhttp.send();
+      }, 10000 );
 
-        setInterval(function () {
-            var xhttp = new XMLHttpRequest();
-            xhttp.onreadystatechange = function () {
-                if (this.readyState == 4 && this.status == 200) {
-                    document.getElementById("temperature").innerHTML = this.responseText;
-                }
-            };
-            xhttp.open("GET", "/temperature", true);
-            xhttp.send();
-        }, 10000);
+      setInterval ( function () {
+          var xhttp = new XMLHttpRequest();
+          xhttp.onreadystatechange = function () {
+              if (this.readyState == 4 && this.status == 200) {
+                  document.getElementById("humidity").innerHTML = this.responseText;
+              }
+          };
+          xhttp.open("GET", "/humidity", true);
+          xhttp.send();
+      }, 10000 );
 
-        setInterval(function () {
-            var xhttp = new XMLHttpRequest();
-            xhttp.onreadystatechange = function () {
-                if (this.readyState == 4 && this.status == 200) {
-                    document.getElementById("humidity").innerHTML = this.responseText;
-                }
-            };
-            xhttp.open("GET", "/humidity", true);
-            xhttp.send();
-        }, 10000);
+      setInterval ( function () {
+          var xhttp = new XMLHttpRequest();
+          xhttp.onreadystatechange = function () {
+              if (this.readyState == 4 && this.status == 200) {
+                  document.getElementById("soil_moisture").innerHTML = this.responseText;
+              }
+          };
+          xhttp.open("GET", "/soil_moisture", true);
+          xhttp.send();
+      }, 10000 );
 
-        setInterval(function () {
-            var xhttp = new XMLHttpRequest();
-            xhttp.onreadystatechange = function () {
-                if (this.readyState == 4 && this.status == 200) {
-                    document.getElementById("soil_moisture").innerHTML = this.responseText;
-                }
-            };
-            xhttp.open("GET", "/soil_moisture", true);
-            xhttp.send();
-        }, 10000);
-
-        function toggleWhatsAppNotifications(element) {
-            var xhttp = new XMLHttpRequest();
-            if (element.checked) {
-                xhttp.open("GET", "/update?output=" + element.id + "&state=1", true);
-            } else {
-                xhttp.open("GET", "/update?output=" + element.id + "&state=0", true);
-            }
-            xhttp.send();
+      function toggleWhatsAppNotifications(element) {
+        var xhttp = new XMLHttpRequest();
+        if (element.checked) {
+          xhttp.open("GET", "/update?output=whatsappToggle&state=1", true);
+        } else {
+          xhttp.open("GET", "/update?output=whatsappToggle&state=0", true);
         }
+        xhttp.send();
+      }
 
-        function toggleAlarmSystem(element) {
-            var xhttp = new XMLHttpRequest();
-            if (element.checked) {
-                xhttp.open("GET", "/update?output=" + element.id + "&state=1", true);
-            } else {
-                xhttp.open("GET", "/update?output=" + element.id + "&state=0", true);
-            }
-            xhttp.send();
+      function toggleAlarmSystem(element) {
+        var xhttp = new XMLHttpRequest();
+        if (element.checked) {
+          xhttp.open("GET", "/update?output=AlarmToggle&state=1", true);
+        } else {
+          xhttp.open("GET", "/update?output=AlarmToggle&state=0", true);
         }
+        xhttp.send();
+      }
 
-        function waterPlant() {
-            var xhttp = new XMLHttpRequest();
-            xhttp.onreadystatechange = function () {
-                if (this.readyState == 4 && this.status == 200) {
-                    console.log("Arduino response:", this.responseText);
-                }
-            };
-            xhttp.open("GET", "/controlWater?state=true", true); 
-            xhttp.send();
-        }
+      function waterPlant() {
+          var xhttp = new XMLHttpRequest();
+          xhttp.onreadystatechange = function () {
+              if (this.readyState == 4 && this.status == 200) {
+                  console.log("Arduino response:", this.responseText);
+              }
+          };
+          xhttp.open("GET", "/controlWater?state=true", true); 
+          xhttp.send();
+      }
     </script>
 </body>
 </html>
@@ -437,12 +436,12 @@ String processor(const String& var){
   else if(var == "HUMIDITY"){
     return String(h);
   }
-  else if(var == "SOIL_MOISTURE")
+  else if(var == "SOIL_MOISTURE"){
     return String(sh);
-
-  else if (var == "PRESENCE")
+  }
+  else if (var == "PRESENCE"){
     return String(Presence);
-
+  }
   return String();
 }
 
@@ -578,32 +577,26 @@ void setup(){
     String output = request->arg("output");
     String state = request->arg("state");
     if (output == "whatsappToggle") {
-      whatsappNotificationsEnabled = (state == "1");
-  }
-  request->send(200, "text/plain", "OK");
-  });
-
-  server.on("/update", HTTP_GET, [](AsyncWebServerRequest *request){
-    String output = request->arg("output");
-    String state = request->arg("state");
-
-    // Assuming you have an output named "AlarmToggle"
-    if (output == "AlarmToggle") {
-      // Update the variable based on the state received
-      alarmSystemEnabled = (state == "1");
-    }
-
+      if (state == "1") {
+        whatsappNotificationsEnabled = true;
+      } else if (state == "0") {
+        whatsappNotificationsEnabled = false;
+      }}
+    else if (output == "AlarmToggle") {
+      if (state == "1") {
+        alarmSystemEnabled = true;
+      } else if (state == "0") {
+        alarmSystemEnabled = false;
+      }}
     request->send(200, "text/plain", "OK");
   });
 
   server.on("/controlWater", HTTP_GET, [](AsyncWebServerRequest *request){
-  String state = request->arg("state");
-
-  if (state == "true") {
-    waterStartTime = millis();
-  }
-
-  request->send(200, "text/plain", "OK");
+    String state = request->arg("state");
+    if (state == "true") {
+      waterStartTime = millis();
+    }
+    request->send(200, "text/plain", "OK");
   });
 
   
