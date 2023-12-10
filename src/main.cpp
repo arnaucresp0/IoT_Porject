@@ -115,7 +115,7 @@ const char index_html[] PROGMEM = R"rawliteral(
         }
 
         .symbol {
-            font-size: 50px;
+            font-size: 40px;
         }
 
         *,
@@ -307,7 +307,6 @@ const char index_html[] PROGMEM = R"rawliteral(
         }
     </style>
 
-
     <title>IOT PROJECT</title>
     <link rel="stylesheet" trype="text/css" href="styles.css">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
@@ -317,9 +316,9 @@ const char index_html[] PROGMEM = R"rawliteral(
 <body>
     <div class="container">
         <h1>PLANT MONITORING AND WATERING WEB</h1>
-        <p>Temperature: <span class="temperature">%TEMPERATURE%</span> °C</p>
-        <p>Moisture: <span class="humidity">%HUMIDITY%</span> % </p>
-        <p>SoilMoisture: <span class="soil_moisture">%SOIL_MOISTURE%</span> %</p>
+        <p>Temperature: <span class="temperature">%TEMPERATURE%</span></p>
+        <p>Moisture: <span class="humidity">%HUMIDITY%</span> </p>
+        <p>Soil Moisture: <span class="soil_moisture">%SOIL_MOISTURE%</span></p>
         <p>Presence: <span class="presence">%PRESENCE%</span></p>
         <p class="symbol" id="plantSymbol"> <i class="fab fa-pagelines" style="color: #24bc52;"></i> </p>
         <h2>AUTOMATIC MODE:</h2>
@@ -351,7 +350,7 @@ const char index_html[] PROGMEM = R"rawliteral(
         </div>
         <style>
             .spacer {
-                margin-bottom: 40px;
+                margin-bottom: 20px;
             }
         </style>
         <div class="spacer"></div>
