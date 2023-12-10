@@ -318,9 +318,7 @@ const char index_html[] PROGMEM = R"rawliteral(
     <div class="container">
         <h1>PLANT MONITORING AND WATERING WEB</h1>
         <p>Temperature: <span class="temperature">%TEMPERATURE%</span> °C</p>
-        <p></p>
-        <p>Moisture: <span class="moisture">%HUMIDITY%</span> % </p>
-        <p></p>
+        <p>Moisture: <span class="humidity">%HUMIDITY%</span> % </p>
         <p>SoilMoisture: <span class="soil_moisture">%SOIL_MOISTURE%</span> %</p>
         <p>Presence: <span class="presence">%PRESENCE%</span></p>
         <p class="symbol" id="plantSymbol"> <i class="fab fa-pagelines" style="color: #24bc52;"></i> </p>
@@ -362,16 +360,6 @@ const char index_html[] PROGMEM = R"rawliteral(
       </div>
     
     <script>
-        setInterval(function () {
-            var xhttp = new XMLHttpRequest();
-            xhttp.onreadystatechange = function () {
-                if (this.readyState == 4 && this.status == 200) {
-                    document.getElementById("soil_moisture").innerHTML = this.responseText;
-                }
-            };
-            xhttp.open("GET", "/soil_moisture", true);
-            xhttp.send();
-        }, 10000);
 
         setInterval(function () {
             var xhttp = new XMLHttpRequest();
@@ -392,6 +380,17 @@ const char index_html[] PROGMEM = R"rawliteral(
                 }
             };
             xhttp.open("GET", "/humidity", true);
+            xhttp.send();
+        }, 10000);
+
+        setInterval(function () {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    document.getElementById("soil_moisture").innerHTML = this.responseText;
+                }
+            };
+            xhttp.open("GET", "/soil_moisture", true);
             xhttp.send();
         }, 10000);
 
