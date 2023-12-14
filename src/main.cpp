@@ -12,23 +12,23 @@
 
 
 // Replace with your network credentials
-const char* ssid = "Fibracat_10156";
-const char* password = "9f6496aa11";
+const char* ssid = "dragino-1c0ad8";
+const char* password = "dragino-dragino";
 //Replace with your country code (i.e. +34) and phone number
 String phoneNumber = "+34722254551"; 
 String apiKey = "1084263";
 
 //DHT
-#define DHTPIN 5     // Digital pin connected to the DHT sensor
-#define DHTTYPE    DHT22     // DHT 22 (AM2302)
+#define DHTPIN 5              // Digital pin connected to the DHT sensor (PIN 1 ESP8266)
+#define DHTTYPE    DHT11      // DHT 22 (AM2302)
 //MOISTURE PIN
-#define SOIL_MOISTURE_PIN A0
+#define SOIL_MOISTURE_PIN A0  // (PIN A0 ESP8266)
 //PIR SENSOR
-#define PIRPIN 4
+#define PIRPIN 4              // (PIN 2 ESP8266)
 //WATER BOMB PIN
-#define WATER_BOMB_PIN 3
+#define WATER_BOMB_PIN 0      // (PIN 3 ESP8266)
 //ALARM PIN
-#define ALARM_PIN 2
+#define ALARM_PIN 12          // (PIN 4 ESP8266)
 
 DHT dht(DHTPIN, DHTTYPE);
 
@@ -41,7 +41,7 @@ float h = 0.0;
 //Soil moisture variable
 float sh = 0.0;
 //Presence variable
-String Presence = "No Detectada";
+String Presence = "Detectada";
 //Indicates if it is need to water the plant for WhatsApp notification function
 bool WaterAlert = false;
 // Updates DHT readings every 10 seconds
@@ -324,7 +324,7 @@ const char index_html[] PROGMEM = R"rawliteral(
         <h2>AUTOMATIC MODE:</h2>
         <div>
             <label class="toggle">
-                <input class="toggle-checkbox" type="checkbox" id="Mode" onclick="toggleMode()">
+                <input class="toggle-checkbox" type="checkbox" id="Mode" onclick="toggleAutoMode(this)">
                 <div class="toggle-switch"></div>
                 <span class="toggle-label">Automatic Mode</span>
             </label>
@@ -333,17 +333,16 @@ const char index_html[] PROGMEM = R"rawliteral(
         <button class="waterButton" onclick="waterPlant()">Water the plant</button>
         <p></p>
         <div>
-            <label class="toggle">
-                <input class="toggle-checkbox" type="checkbox" id="AlarmToggle" onclick="toggleAlarmSystem()">
-                <div class="toggle-switch"></div>
-                <span class="toggle-label">Enable alarm system</span>
-            </label>
+          <label class="toggle">
+              <input class="toggle-checkbox" type="checkbox" id="AlarmToggle" onclick="toggleAlarmSystem(this)">
+              <div class="toggle-switch"></div>
+              <span class="toggle-label">Enable alarm system</span>
+          </label>
         </div>
         <p></p>
         <div>
             <label class="toggle">
-                <input class="toggle-checkbox" type="checkbox" id="whatsappToggle"
-                    onclick="toggleWhatsAppNotifications()">
+                <input class="toggle-checkbox" type="checkbox" id="whatsappToggle" onclick="toggleWhatsAppNotifications(this)">
                 <div class="toggle-switch"></div>
                 <span class="toggle-label">WhatsApp Notifications</span>
             </label>
@@ -408,6 +407,16 @@ const char index_html[] PROGMEM = R"rawliteral(
           xhttp.open("GET", "/update?output=AlarmToggle&state=1", true);
         } else {
           xhttp.open("GET", "/update?output=AlarmToggle&state=0", true);
+        }
+        xhttp.send();
+      }
+
+      function toggleAutoMode(element) {
+        var xhttp = new XMLHttpRequest();
+        if (element.checked) {
+          xhttp.open("GET", "/update?output=Mode&state=1", true);
+        } else {
+          xhttp.open("GET", "/update?output=Mode&state=0", true);
         }
         xhttp.send();
       }
@@ -496,6 +505,9 @@ void AlertManager(){
       //Check the presence
       if(Presence = "Detectada"){
         PresenceAlert = "Compta s'ha detectat una presència.";
+      }
+      else{
+        PresenceAlert = "La planta està tranquila.";
       } 
       sendMessage(tempAlert);
       sendMessage(SoilAlert);
@@ -509,14 +521,8 @@ void AlertManager(){
 void AlarmOn(){
   if (alarmSystemEnabled == true) {
       Serial.println("Alarma habilitada.");
-      while(millis() < 3000){
-        digitalWrite(ALARM_PIN, HIGH);
-        delay(50);
-        digitalWrite(ALARM_PIN,LOW);
-      }
-  
+      digitalWrite(ALARM_PIN, HIGH);
   }
-
 } 
 
 void PlantWatering(){
@@ -533,7 +539,6 @@ void PlantWatering(){
 void AutoMode(){
   //Set the automatic mode for watering and alarm usage.
   if(AutoModeVar == true){
-    Serial.print("Mode automàtic habilitat");
     if (sh <= 500){
       PlantWatering();
     }
@@ -587,6 +592,12 @@ void setup(){
         alarmSystemEnabled = true;
       } else if (state == "0") {
         alarmSystemEnabled = false;
+      }}
+      else if (output == "Mode") {
+      if (state == "1") {
+        AutoModeVar = true;
+      } else if (state == "0") {
+        AutoModeVar = false;
       }}
     request->send(200, "text/plain", "OK");
   });
@@ -647,13 +658,10 @@ void loop(){
        Presence = "Detectada";        
     }
     else {
-       Presence = "No Detectada";
+       Presence = "Detectada";
     }
     AlertManager();
   }
   AutoMode();
   PlantWatering();
 }
-
-
-
