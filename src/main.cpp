@@ -550,6 +550,10 @@ void AutoMode(){
 
 //SETUP
 void setup(){
+
+  pinMode(WATER_BOMB_PIN, OUTPUT);
+  pinMode(ALARM_PIN, OUTPUT);
+
   // Serial port for debugging purposes
   Serial.begin(115200);
   dht.begin();
