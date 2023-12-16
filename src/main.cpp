@@ -21,16 +21,16 @@ String phoneNumber = "+34722254551";
 String apiKey = "1084263";
 
 //DHT
-#define DHTPIN 5              // Digital pin connected to the DHT sensor (PIN 1 ESP8266)
-#define DHTTYPE    DHT11      // DHT 22 (AM2302)
+#define DHTPIN 5              // (PIN D1 ESP8266)
+#define DHTTYPE    DHT11      // DHT 11 (AM2302)
 //MOISTURE PIN
 #define SOIL_MOISTURE_PIN A0  // (PIN A0 ESP8266)
 //PIR SENSOR
-#define PIRPIN 4              // (PIN 2 ESP8266)
+#define PIRPIN 4              // (PIN D2 ESP8266)
 //WATER BOMB PIN
-#define WATER_BOMB_PIN 0      // (PIN 3 ESP8266)
+#define WATER_BOMB_PIN 0      // (PIN D3 ESP8266)
 //ALARM PIN
-#define ALARM_PIN 12          // (PIN 4 ESP8266)
+#define ALARM_PIN 12          // (PIN D6 ESP8266)
 
 DHT dht(DHTPIN, DHTTYPE);
 
@@ -58,13 +58,15 @@ String tempAlert;
 String SoilAlert;
 String PresenceAlert;
 //Alert counter to send WhApp messages every 30 sec.
-int AlertCounter = 3;
+int AlertCounter = 6;
 //Automatic mode variable.
 bool AutoModeVar;
 //Variable that enable the WApp notifications.
 bool whatsappNotificationsEnabled = false;
 //Variable that enable the Alarm system.
 bool alarmSystemEnabled = false;
+unsigned long AlarmStartTime = 0;
+const unsigned long AlarmDuration = 3000; // milliseconds
 unsigned long waterStartTime = 0;
 const unsigned long waterDuration = 3000; // milliseconds
 
@@ -319,7 +321,7 @@ const char index_html[] PROGMEM = R"rawliteral(
     <div class="container">
         <h1>PLANT MONITORING AND WATERING WEB</h1>
         <p>Temperature: <span  id="temperature" class="temperature">%TEMPERATURE%</span></p>
-        <p>Moisture: <span  id="humidity" class="humidity">%HUMIDITY%</span> </p>
+        <p>Moisture: <span  id="humidity" class="humidity">%HUMIDITY%</span></p>
         <p>Soil Moisture: <span id="soil_moisture" class="soil_moisture">%SOIL_MOISTURE%</span></p>
         <p>Presence: <span class="presence">%PRESENCE%</span></p>
         <p class="symbol" id="plantSymbol"> <i class="fab fa-pagelines" style="color: #24bc52;"></i> </p>
@@ -523,7 +525,15 @@ void AlertManager(){
 void AlarmOn(){
   if (alarmSystemEnabled == true) {
       Serial.println("Alarma habilitada.");
-      digitalWrite(ALARM_PIN, HIGH);
+      if (millis() - AlarmStartTime < AlarmDuration) {
+        // Activate the water bomb pin
+        tone(ALARM_PIN, 1000);
+        Serial.println("Alarm ringing !");
+      } 
+      else{
+        // Deactivate the water bomb pin
+        noTone(ALARM_PIN);
+      }
   }
 } 
 
@@ -555,6 +565,9 @@ void setup(){
 
   pinMode(WATER_BOMB_PIN, OUTPUT);
   pinMode(ALARM_PIN, OUTPUT);
+  pinMode(DHTPIN, INPUT);
+  pinMode(SOIL_MOISTURE_PIN, INPUT);
+  pinMode(PIRPIN,INPUT);
 
   // Serial port for debugging purposes
   Serial.begin(115200);
@@ -602,6 +615,7 @@ void setup(){
       else if (output == "Mode") {
       if (state == "1") {
         AutoModeVar = true;
+        AlarmStartTime = millis();
       } else if (state == "0") {
         AutoModeVar = false;
       }}
