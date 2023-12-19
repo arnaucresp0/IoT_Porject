@@ -51,8 +51,8 @@ const long interval = 10000;
 // will store last time DHT was updated
 unsigned long previousMillis = 0;  
 // These two variables set the equation to convert from analog reading to %  
-float m = 67.57;
-float n = 70.27;
+float m = -0.23;
+float n = 173.515;
 //These three string variables are for displaying the WhatsApp
 String tempAlert;
 String SoilAlert;
@@ -500,7 +500,7 @@ void AlertManager(){
         tempAlert = "La temperatura és adecuada.";
       }
       //Check the soil moisture
-      if(sh < 500){
+      if(sh < 50){
         SoilAlert = "La planta necessita aigua.";
       }
       else{
@@ -527,7 +527,7 @@ void AlarmOn(){
       Serial.println("Alarma habilitada.");
       if (millis() - AlarmStartTime < AlarmDuration) {
         // Activate the water bomb pin
-        tone(ALARM_PIN, 1000);
+        tone(ALARM_PIN, 500);
         Serial.println("Alarm ringing !");
       } 
       else{
@@ -551,10 +551,12 @@ void PlantWatering(){
 void AutoMode(){
   //Set the automatic mode for watering and alarm usage.
   if(AutoModeVar == true){
-    if (sh <= 500){
+    if (sh <= 60){
+      waterStartTime = millis();
       PlantWatering();
     }
     if(Presence == "Detectada"){
+      AlarmStartTime = millis();
       AlarmOn();
     }
   }
@@ -615,7 +617,6 @@ void setup(){
       else if (output == "Mode") {
       if (state == "1") {
         AutoModeVar = true;
-        AlarmStartTime = millis();
       } else if (state == "0") {
         AutoModeVar = false;
       }}
@@ -644,8 +645,6 @@ void loop(){
     //-----------------DHT----------------
     // Read temperature as Celsius (the default)
     float newT = dht.readTemperature();
-    // Read temperature as Fahrenheit (isFahrenheit = true)
-    //float newT = dht.readTemperature(true);
     // if temperature read failed, don't change t value
     if (isnan(newT)) {
       Serial.println("Failed to read temperature from DHT sensor!");
@@ -667,9 +666,10 @@ void loop(){
     //-----------------SOIL_MOISTURE----------------
     // Read the value from the analog sensor:
     float sensorValue = analogRead(SOIL_MOISTURE_PIN);
+    Serial.print("Analog read:" );
+    Serial.println(sensorValue);
     //Transform the analog calue to %
-    //sh = ((m * sensorValue) - n);
-    sh = sensorValue;
+    sh = ((m * sensorValue) + n);    
     Serial.print("Soil moisture reading:" );
     Serial.println(sh);
     //----------------PIR_SENSOR-----------------
@@ -678,7 +678,7 @@ void loop(){
        Presence = "Detectada";        
     }
     else {
-       Presence = "Detectada";
+       Presence = "No Detectada";
     }
     AlertManager();
   }
