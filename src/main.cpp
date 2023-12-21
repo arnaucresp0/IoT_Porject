@@ -12,10 +12,10 @@
 
 
 // Replace with your network credentials
-//const char* ssid = "dragino-1c0ad8";
-//const char* password = "dragino-dragino";
-const char* ssid = "Fibracat_10156";
-const char* password = "9f6496aa11";
+const char* ssid = "dragino-1c0ad8";
+const char* password = "dragino-dragino";
+//const char* ssid = "Fibracat_10156";
+//const char* password = "9f6496aa11";
 //Replace with your country code (i.e. +34) and phone number
 String phoneNumber = "+34722254551"; 
 String apiKey = "1084263";
@@ -323,7 +323,7 @@ const char index_html[] PROGMEM = R"rawliteral(
         <p>Temperature: <span  id="temperature" class="temperature">%TEMPERATURE%</span></p>
         <p>Moisture: <span  id="humidity" class="humidity">%HUMIDITY%</span></p>
         <p>Soil Moisture: <span id="soil_moisture" class="soil_moisture">%SOIL_MOISTURE%</span></p>
-        <p>Presence: <span class="presence">%PRESENCE%</span></p>
+        <p>Presence: <span id= "presence" class="presence">%PRESENCE%</span></p>
         <p class="symbol" id="plantSymbol"> <i class="fab fa-pagelines" style="color: #24bc52;"></i> </p>
         <h2>AUTOMATIC MODE:</h2>
         <div>
@@ -371,7 +371,7 @@ const char index_html[] PROGMEM = R"rawliteral(
           };
           xhttp.open("GET", "/temperature", true);
           xhttp.send();
-      }, 10000 );
+      }, 5000 );
 
       setInterval ( function () {
           var xhttp = new XMLHttpRequest();
@@ -382,7 +382,7 @@ const char index_html[] PROGMEM = R"rawliteral(
           };
           xhttp.open("GET", "/humidity", true);
           xhttp.send();
-      }, 10000 );
+      }, 5000 );
 
       setInterval ( function () {
           var xhttp = new XMLHttpRequest();
@@ -393,7 +393,18 @@ const char index_html[] PROGMEM = R"rawliteral(
           };
           xhttp.open("GET", "/soil_moisture", true);
           xhttp.send();
-      }, 10000 );
+      }, 5000 );
+
+      setInterval ( function () {
+          var xhttp = new XMLHttpRequest();
+          xhttp.onreadystatechange = function () {
+              if (this.readyState == 4 && this.status == 200) {
+                  document.getElementById("presence").innerHTML = this.responseText;
+              }
+          };
+          xhttp.open("GET", "/presence", true);
+          xhttp.send();
+      }, 2000 );
 
       function toggleWhatsAppNotifications(element) {
         var xhttp = new XMLHttpRequest();
@@ -535,6 +546,9 @@ void AlarmOn(){
         noTone(ALARM_PIN);
       }
   }
+  else{
+    noTone(ALARM_PIN);
+  }
 } 
 
 void PlantWatering(){
@@ -598,6 +612,9 @@ void setup(){
   });
     server.on("/soil_moisture", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send_P(200, "text/plain", String(sh).c_str());
+  });
+    server.on("/presence", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send_P(200, "text/plain", String(Presence).c_str());
   });
   server.on("/update", HTTP_GET, [](AsyncWebServerRequest *request){
     String output = request->arg("output");
@@ -672,16 +689,18 @@ void loop(){
     sh = ((m * sensorValue) + n);    
     Serial.print("Soil moisture reading:" );
     Serial.println(sh);
-    //----------------PIR_SENSOR-----------------
+    AlertManager();
+  }
+  //----------------PIR_SENSOR-----------------
     int val = digitalRead(PIRPIN);
+    Serial.println("PIR value:");
+    Serial.println(val);
     if (val == HIGH) {    // Comprobar si el sensor está en HIGH
        Presence = "Detectada";        
     }
     else {
        Presence = "No Detectada";
     }
-    AlertManager();
-  }
   AutoMode();
   PlantWatering();
 }
